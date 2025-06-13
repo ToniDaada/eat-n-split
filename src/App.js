@@ -22,18 +22,31 @@ const initialFriends = [
 ];
 
 export default function App() {
+  // Use State for toggling the addfriend form
   const [showAddFriend, setShowAddFriend] = useState(false);
+  // Use State for updating the friends list
+  const [friends, setFriends] = useState(initialFriends);
 
+  // Function for toggling the addfriend form
   const handleOpen = function () {
-    setShowAddFriend(() => !showAddFriend);
+    setShowAddFriend((show) => !show);
+  };
+
+  // Function for updating the friend List
+  const handleAddFriend = function (friend) {
+    setFriends((friends) => [...friends, friend]);
   };
 
   return (
+    // Main content of the app
     <div className="app">
       <div className="sidebar">
-        <FriendsList />
-        {showAddFriend && <FormAddFriend />}
+        <FriendsList friends={friends} />
+        {/* If the showAddfriend is true, show the form else do not */}
+        {showAddFriend && <FormAddFriend onAddFriend={handleAddFriend} />}
+        {/* Button that opens and closes the add friend form */}
         <Button handleClick={handleOpen}>
+          {/* If Add friend is true 'Close else' show 'Add Friend' */}
           {showAddFriend ? "Close" : "Add Friend"}
         </Button>
       </div>
@@ -42,8 +55,7 @@ export default function App() {
   );
 }
 
-function FriendsList() {
-  const friends = initialFriends;
+function FriendsList({ friends }) {
   return (
     <ul>
       {friends.map((friend) => (
@@ -75,14 +87,48 @@ function Friend({ friend }) {
   );
 }
 
-function FormAddFriend() {
+function FormAddFriend({ onAddFriend }) {
+  const [friendName, setFriendName] = useState("");
+  const [imageURL, setImageURL] = useState("https://i.pravatar.cc/48");
+
+  const handleSubmit = function (e) {
+    e.preventDefault();
+
+    if (!friendName || !imageURL) return;
+    // This uses the browser API for creating ids
+    const id = crypto.randomUUID();
+    // Creating a newFriend Object based on the things passed into the text box that will then be added to the initialFriends Array
+
+    const newFriend = {
+      id,
+      name: friendName,
+      image: `${imageURL}?=${id}`,
+      balance: 0,
+    };
+
+    // Updating the initialFriends Array, this was passed as a prop and now its being updated.
+    onAddFriend(newFriend);
+
+    // Returning the textboxes back to normal
+    setImageURL("https://i.pravatar.cc/48");
+    setFriendName("");
+  };
+
   return (
-    <form className="form-add-friend">
+    <form className="form-add-friend" onSubmit={handleSubmit}>
       <label>😎Friend name</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={friendName}
+        onChange={(e) => setFriendName(e.target.value)}
+      />
 
       <label>🖼️ Image URL</label>
-      <input type="text" />
+      <input
+        type="text"
+        value={imageURL}
+        onChange={(e) => setImageURL(e.target.value)}
+      />
 
       <Button>Add</Button>
     </form>
@@ -108,7 +154,7 @@ function FormSplitBill() {
       <label>🧑‍🤝‍🧑X's expense</label>
       <input type="text" disabled />
       <label>💳Who is paying the bill?</label>
-      <select value="user">
+      <select>
         <option value="user">You</option>
         <option value="friend">X</option>
       </select>

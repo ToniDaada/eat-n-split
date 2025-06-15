@@ -206,7 +206,8 @@ function FormSplitBill({ selectedFriend, onSplitBill }) {
     // If the bill or bill paid by user input is empty then return, dont submit
     if (!bill || !paidByUser) return;
 
-    onSplitBill(whoIsPaying === "user" ? paidByFriend : -paidByUser);
+    if (window.confirm("Are you sure you are happy with the split ?"))
+      onSplitBill(whoIsPaying === "user" ? paidByFriend : -paidByUser);
   }
   return (
     <form className="form-split-bill" onSubmit={handleSubmit}>

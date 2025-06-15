@@ -1,4 +1,4 @@
-import { use, useState } from "react";
+import { useState } from "react";
 
 const initialFriends = [
   {
@@ -42,11 +42,24 @@ export default function App() {
     handleOpen();
   };
 
+  // Handles the selection of a friend
   const handleSelection = function (friend) {
     setSelectedFriend((selected) =>
       selected?.id === friend.id ? null : friend
     );
     setShowAddFriend(false);
+  };
+
+  // Handles the spliting of the bill
+  const handleSplitBill = function (value) {
+    setFriends((friends) =>
+      friends.map((friend) =>
+        friend.id === selectedFriend.id
+          ? { ...friend, balance: friend.balance + value }
+          : friend
+      )
+    );
+    setSelectedFriend(null);
   };
 
   return (
@@ -68,11 +81,17 @@ export default function App() {
         </Button>
       </div>
       {/* If selected friend is false dont show the side bar */}
-      {selectedFriend && <FormSplitBill selectedFriend={selectedFriend} />}
+      {selectedFriend && (
+        <FormSplitBill
+          selectedFriend={selectedFriend}
+          onSplitBill={handleSplitBill}
+        />
+      )}
     </div>
   );
 }
 
+// The friendsList
 function FriendsList({ friends, onSelection, selectedFriend }) {
   return (
     <ul>
@@ -88,11 +107,12 @@ function FriendsList({ friends, onSelection, selectedFriend }) {
   );
 }
 
+// Contains the main JSX of the friends side bar, inclusing the styling too
 function Friend({ friend, onSelection, selectedFriend }) {
   // I did optional chaining because selecred friend is null originally, and you cannot find the value of null.id
   const isSelected = selectedFriend?.id === friend.id;
   return (
-    <li className={isSelected && "selected"}>
+    <li className={isSelected ? "selected" : ""}>
       <img src={friend.image} alt={friend.name} />
 
       <h3> {friend.name}</h3>
@@ -114,6 +134,7 @@ function Friend({ friend, onSelection, selectedFriend }) {
   );
 }
 
+// The form to add a friend
 function FormAddFriend({ onAddFriend }) {
   const [friendName, setFriendName] = useState("");
   const [imageURL, setImageURL] = useState("https://i.pravatar.cc/48");
@@ -162,6 +183,7 @@ function FormAddFriend({ onAddFriend }) {
   );
 }
 
+// The Reusable Button Component
 function Button({ children, handleClick }) {
   return (
     <button className="button" onClick={handleClick}>
@@ -170,13 +192,24 @@ function Button({ children, handleClick }) {
   );
 }
 
-function FormSplitBill({ selectedFriend }) {
+// The function that handles the splitting of the bill, Its a form
+function FormSplitBill({ selectedFriend, onSplitBill }) {
   const [bill, setBill] = useState("");
   const [paidByUser, setPaidByUser] = useState("");
+
+  // If the bill is empty, then the amount paid by friend is empty
   const paidByFriend = bill ? bill - paidByUser : "";
   const [whoIsPaying, setWhoIsPaying] = useState("user");
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    // If the bill or bill paid by user input is empty then return, dont submit
+    if (!bill || !paidByUser) return;
+
+    onSplitBill(whoIsPaying === "user" ? paidByFriend : -paidByUser);
+  }
   return (
-    <form className="form-split-bill">
+    <form className="form-split-bill" onSubmit={handleSubmit}>
       <h2>Split a bill with {selectedFriend.name} </h2>
       <label>💰Bill Value</label>
       <input
@@ -190,10 +223,12 @@ function FormSplitBill({ selectedFriend }) {
         value={paidByUser}
         onChange={(e) =>
           setPaidByUser(
+            // This tenary clause ensures the bill paid by the user is never higher than the actual bill
             Number(e.target.value) > bill ? paidByUser : Number(e.target.value)
           )
         }
       />
+      {/* Its disabled so the value of the input is determined by (bill - paidbyUser) */}
       <label>🧑‍🤝‍🧑{selectedFriend.name} expense</label>
       <input type="text" disabled value={paidByFriend} />
       <label>💳Who is paying the bill?</label>

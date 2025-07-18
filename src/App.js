@@ -85,6 +85,7 @@ export default function App() {
         <FormSplitBill
           selectedFriend={selectedFriend}
           onSplitBill={handleSplitBill}
+          key={selectedFriend.id}
         />
       )}
     </div>
@@ -222,6 +223,7 @@ function FormSplitBill({ selectedFriend, onSplitBill }) {
       <input
         type="text"
         value={paidByUser}
+        z
         onChange={(e) =>
           setPaidByUser(
             // This tenary clause ensures the bill paid by the user is never higher than the actual bill
